@@ -1,30 +1,58 @@
 {
   "expo": {
-    "name": "AudioBooks",
-    "slug": "AudioBooks",
-    "version": "1.0.0",
+    "name": "CalTrack",
+    "slug": "caltrack",
+    "scheme": "caltrack",
+    "version": "1.0.5",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/caltrack-icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    "newArchEnabled": false,
+
+    "extra": {
+      "EXPO_PUBLIC_IAP_VERIFY_URL": "https://mipmwweuqnmdhersxchh.supabase.co/functions/v1/iap-verify-google"
     },
+
+    "splash": {
+      "image": "./assets/caltrack-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+
     "ios": {
+      "bundleIdentifier": "com.pet.caltrack",
       "supportsTablet": true
     },
+
     "android": {
+      "package": "com.pet.caltrack",
+      "versionCode": 6,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/caltrack-icon.png",
+        "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "POST_NOTIFICATIONS"
+      ],
+      "splash": {
+        "image": "./assets/caltrack-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFFF"
+      }
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+
+    "plugins": [
+      "expo-audio",
+      "expo-video",
+      "react-native-iap",
+      "expo-localization"
+    ]
   }
 }
