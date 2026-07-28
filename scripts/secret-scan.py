@@ -31,9 +31,17 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("Slack token",          re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}")),
     ("AWS access key",       re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
     ("private key block",    re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----")),
+    # Authorization headers. Covers "Bearer <tok>", and the "Key <id>:<secret>"
+    # form fal.ai uses. Vendors prefix their tokens (key_, sk_, r8_), so this must
+    # not assume the value starts with a hex digit.
+    ("auth header",          re.compile(r"\b(?:Bearer|Key|Token|Basic)\s+(?!YOUR_|\{\{|\$)[A-Za-z0-9._~+/=:-]{20,}", re.IGNORECASE)),
+    ("fal.ai key",           re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}")),
+    ("prefixed hex key",     re.compile(r"\b(?:key|tok|api|sk|pk|rk|r8)_[0-9a-fA-F]{32,}")),
     ("secret in query string", re.compile(r"[?&](?:access_?token|api_?key|auth|token|secret|password|signature)=(?!YOUR_|\{\{|\$)[A-Za-z0-9%._~+/-]{12,}", re.IGNORECASE)),
     ("assigned secret",      re.compile(r"(?:api_?key|access_?token|auth_?token|client_?secret|password|passwd|secret_?key)\s*[:=]\s*[\"'](?!YOUR_|\{\{|\$|\s*[\"'])[^\"'\s]{12,}[\"']", re.IGNORECASE)),
-    ("long hex secret",      re.compile(r"\b[0-9a-f]{40,}\b")),
+    # NOT \b...\b: a word boundary never fires between "_" and a hex digit, so
+    # "key_39f884..." slipped straight through. Anchor on "not a hex digit" instead.
+    ("long hex secret",      re.compile(r"(?<![0-9a-fA-F])[0-9a-f]{40,}(?![0-9a-fA-F])")),
 ]
 
 # Committing an env file is a mistake regardless of what is inside it.
