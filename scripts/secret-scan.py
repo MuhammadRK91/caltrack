@@ -50,7 +50,12 @@ SKIP = re.compile(
 
 
 def git(*args: str) -> str:
-    return subprocess.run(["git", *args], capture_output=True, text=True).stdout
+    # encoding must be explicit: on Windows the default is cp1252, which raises on
+    # any byte outside that codepage — and a crash while reading a file would be
+    # indistinguishable from a finding. Never let a read error become a verdict.
+    proc = subprocess.run(["git", *args], capture_output=True,
+                          encoding="utf-8", errors="replace")
+    return proc.stdout or ""
 
 
 def allowlist() -> list[str]:
@@ -109,13 +114,28 @@ def main() -> int:
             reader = lambda p: Path(p).read_text(encoding="utf-8", errors="replace")
 
         findings += check_paths(paths)
+        unreadable = []
         for p in paths:
             if SKIP.search(p):
                 continue
             try:
-                findings += scan_text(p, reader(p), allowed)
-            except (OSError, UnicodeDecodeError):
+                text = reader(p)
+            except (OSError, UnicodeDecodeError) as exc:
+                unreadable.append(f"{p}: {exc}")
                 continue
+            if text:
+                findings += scan_text(p, text, allowed)
+            elif Path(p).exists() and Path(p).stat().st_size > 0:
+                # Genuinely empty files are fine. A non-empty file that read as
+                # nothing means the read failed, which is worth saying out loud.
+                unreadable.append(f"{p}: read returned nothing")
+
+        # Surfaced rather than swallowed: a file the scanner could not read is a
+        # file it did not check, and silence there is a false sense of safety.
+        if unreadable:
+            print(f"warning: {len(unreadable)} file(s) could not be scanned")
+            for u in unreadable[:10]:
+                print(f"  {u}")
 
     if findings:
         print("\nPOSSIBLE SECRETS — commit blocked\n")
