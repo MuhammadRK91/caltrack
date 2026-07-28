@@ -93,6 +93,18 @@ fails loudly at startup on a missing one rather than failing silently at the fir
 Note that `EXPO_PUBLIC_*` values are inlined into the bundle — they are configuration, not secrets.
 Anything that must stay private lives in an Edge Function environment variable.
 
+**Credentials cannot reach the remote by accident.** `scripts/secret-scan.py` runs at two gates: a
+pre-commit hook, and a GitHub Actions job on every push. It fails on JWTs, provider keys
+(OpenAI, Anthropic, ElevenLabs, Cal.com, Google, Slack, AWS, GitHub), private key blocks, tokens in
+query strings, and any attempt to commit a `.env` file. Enable the hook once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Known-safe strings go in `.secretsallow` — one substring per line. Allowlisting a specific value is
+always better than loosening a pattern, because the pattern protects every future commit.
+
 **Uploads are bounded client-side.** Images are size-checked before upload rather than after, so a
 large photo fails immediately on-device instead of consuming bandwidth and a workflow run.
 
